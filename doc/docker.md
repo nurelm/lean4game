@@ -100,6 +100,18 @@ Extra arguments are forwarded to `cypress run`:
 ./scripts/run_tests.sh --spec cypress/e2e/01-basic-interface.cy.ts
 ```
 
+### Known upstream test failures
+
+As of this branch, running the full suite gives **19/26 passing** (the whole
+`01-basic-interface.cy.ts` and 13 of 20 in `game-features.cy.ts`). The 7
+failures are not caused by the Docker setup: upstream's own CI has been red
+on `main` since 2026-10-02 with all matrix entries (`Linux/macOS/Windows -
+electron`) failing at the "Run Cypress tests" step before this branch existed.
+The failing tests all type into the Monaco editor and trip cypress'
+"requires a valid typeable element" check on `.view-line`; a test-run
+screenshot shows the game server itself working (level LSP serves the goal,
+editor and hints render).
+
 ## How the image is built
 
 - `ubuntu:24.04` + Node.js 26 (same major version as CI) + elan with every

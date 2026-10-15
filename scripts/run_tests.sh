@@ -18,7 +18,7 @@ echo "Building image (cached layers make this fast when nothing changed)..."
 docker_compose --profile test build
 
 echo "Running cypress in Docker..."
-docker_compose --profile test run --rm test "$@"
+docker_compose --profile test run --rm test bash docker/run-tests.sh "$@"
 status=$?
 
 if [ "$status" = 0 ]; then

@@ -32,7 +32,9 @@ RUN curl -fsSL https://elan.lean-lang.org/elan-init.sh | sh -s -- -y --default-t
     && for tc in $(sort -u /tmp/toolchain-server /tmp/toolchain-testgame); do elan toolchain install "$tc"; done \
     && elan default "$(sort -u /tmp/toolchain-server /tmp/toolchain-testgame | head -n1)"
 
-ENV CYPRESS_CACHE_DIRECTORY=/opt/cypress-cache
+# cypress 15 honors the old CYPRESS_CACHE_FOLDER name; set both spellings
+ENV CYPRESS_CACHE_FOLDER=/opt/cypress-cache \
+    CYPRESS_CACHE_DIRECTORY=/opt/cypress-cache
 WORKDIR /app
 
 # npm workspaces (root + client + relay)
@@ -55,6 +57,8 @@ RUN npm --workspace client run build
 
 # TestGame (e2e fixture game) and the cypress specs
 COPY cypress /app/cypress
+# cypress' TS preprocessor wants the root tsconfig.json too
+COPY tsconfig.json ./
 COPY cypress.config.ts ./
 RUN npm run build:test
 
@@ -90,7 +94,8 @@ COPY --from=build /root/.elan /root/.elan
 ENV PATH="/root/.elan/bin:${PATH}"
 
 COPY --from=build /opt/cypress-cache /opt/cypress-cache
-ENV CYPRESS_CACHE_DIRECTORY=/opt/cypress-cache
+ENV CYPRESS_CACHE_FOLDER=/opt/cypress-cache \
+    CYPRESS_CACHE_DIRECTORY=/opt/cypress-cache
 # Full npm install (dev dependencies included): the relay resolves transitive
 # dependencies such as vscode-ws-jsonrpc from the hoisted root node_modules,
 # and running `cypress run` needs the cypress npm package in place.
