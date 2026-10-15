@@ -33,6 +33,9 @@ The documentation is very much work in progress but the links below should be up
 ### Hosting
 * [How to host a lean4game instance yourself](doc/hosting.md): how to set up your own Lean Game Server
 
+### Docker
+* [How to run lean4game with Docker](doc/docker.md): one-command local setup (`scripts/run_local.sh up`) and test runs (`scripts/run_tests.sh`)
+
 ## Contributing
 
 Contributions to `lean4game` are always welcome!

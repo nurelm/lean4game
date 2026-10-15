@@ -1,0 +1,31 @@
+# Keep the build context small and make sure host build artifacts never leak
+# into the image. The image builds everything itself from the pinned sources.
+# Only what the Dockerfile COPYs must survive these exclusions:
+# package.json/package-lock.json, client/, relay/, server/, cypress/,
+# cypress.config.ts and docker/run-tests.sh.
+
+# Host build artifacts and dependencies
+**/node_modules
+**/.lake
+client/dist
+relay/dist
+games
+logs
+cypress/screenshots
+cypress/videos
+
+# Version-control and editor/CI metadata
+.git
+.github
+.vscode
+**/.DS_Store
+
+# Docs - not needed inside the image
+doc
+*.md
+LICENSE
+NOTES*
+
+# Note: docker/docker-compose.yml is passed to the CLI explicitly and
+# docker/run-tests.sh is baked into the image, so the docker/ folder stays in
+# the context. The Dockerfile is read directly by the builder, not copied.
