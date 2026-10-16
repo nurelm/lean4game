@@ -104,7 +104,7 @@ ENV CYPRESS_CACHE_FOLDER=/opt/cypress-cache \
 # mode (any folder holding a `.lake/gamedata/game.json`). The repo itself
 # lives one level down so local games end up as siblings of it.
 COPY --from=build /app /srv/lean4game
-COPY docker/run-tests.sh /srv/lean4game/docker/run-tests.sh
+COPY docker/run-tests.sh docker/run-tests-dev.sh /srv/lean4game/docker/
 
 # The baked-in TestGame as a local game:
 #  - /srv/TestGame is a hardlinked copy so the landing page lists it
