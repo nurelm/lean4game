@@ -44,6 +44,18 @@ Docker equivalent of the "Run Cypress tests (Production mode)" step in
 test:prod`), without re-running the builds at test time. Extra arguments are
 forwarded to `cypress run`.
 
+### `scripts/run_terminal.sh` — run commands in the app container
+
+```bash
+./scripts/run_terminal.sh                  # interactive bash in the app container
+./scripts/run_terminal.sh <command...>     # bash -c "<command>" in the app container
+```
+
+Execs into the running `app` container if it is up; otherwise starts an
+ephemeral one from the same image (built on demand) which removes itself when
+the command exits — useful for inspecting the image artifacts or running
+one-off commands without keeping a stack around.
+
 ## Quick start
 
 ```bash
@@ -110,14 +122,11 @@ not portable, so a game's `.lake` folder should be built inside a container.
 
 ## Test results
 
-Running the full suite currently gives **19/26 passing** (the whole
-`01-basic-interface.cy.ts` and 13 of 20 in `game-features.cy.ts`). The 7
-failures are not caused by the Docker setup: upstream CI has been red on
-`main` since 2026-10-02, with all matrix entries (`Linux/macOS/Windows -
-electron`) failing at the "Run Cypress tests" step. The failing tests all
-type into the Monaco editor and trip cypress' "requires a valid typeable
-element" check on `.view-line`; a test-run screenshot shows the game server
-itself working (the level LSP serves the goal, editor and hints render).
+Running the full suite gives **26/26 passing** (the whole `01-basic-interface.cy.ts`
+and all 20 tests in `game-features.cy.ts`). Note that it took a set of client-side
+fixes to get there: the infoview panel rendered by `GameInfoview.tsx`, robust
+typewriter/editor focusing, and plain-text rendering of Lean's tagged diagnostic
+messages. Upstream CI may still be red if it does not include these fixes.
 
 ## How the image is built
 
