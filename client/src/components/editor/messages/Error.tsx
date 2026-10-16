@@ -1,8 +1,29 @@
 // TODO: Should not use index as key.
 import React from "react";
 
-import { InteractiveDiagnostic, MsgEmbed, TaggedText, TaggedText_stripTags } from "@leanprover/infoview-api";
+import { InteractiveDiagnostic, MsgEmbed, TaggedText } from "@leanprover/infoview-api";
 import { DiagnosticSeverity } from "vscode-languageserver-types";
+
+/**
+ * Render a `TaggedText` message to plain text.
+ *
+ * Note that `TaggedText_stripTags` from the infoview API only follows the `tag[1]`
+ * (the remainder of the string), but the Lean server sends the actual text inside
+ * "expression" embeds (`tag[0] = {expr: ...}`), which would be dropped entirely.
+ */
+function messageToString(message: TaggedText<MsgEmbed>): string {
+  const go = (t: any): string => {
+    if (typeof t !== 'object' || t === null) return ''
+    if ('append' in t) return t.append.reduce((acc, t_) => acc + go(t_), '')
+    if ('tag' in t) {
+      const [embed, rest] = t.tag
+      return (embed && 'expr' in embed ? go(embed.expr) : '') + go(rest)
+    }
+    if ('text' in t) return t.text
+    return ''
+  }
+  return go(message)
+}
 
 /** A list of messages (info/warning/error) that are produced after this command */
 export function Errors ({errors, typewriterMode} : {errors : InteractiveDiagnostic[], typewriterMode : boolean}) {
@@ -27,14 +48,16 @@ function Error({error, typewriterMode} : {error : InteractiveDiagnostic, typewri
 
   // Hide "unsolved goals" messages
   let message: TaggedText<MsgEmbed>;
-  if ("append" in error.message && "text" in error.message.append[0] &&
-  error.message?.append[0].text === "unsolved goals") {
+  const firstText = ("append" in error.message && error.message.append.length > 0)
+    ? messageToString(error.message.append[0]) : null
+  if (firstText !== null &&
+  firstText.startsWith("unsolved goals")) {
       message = error.message.append[0]
   } else {
       message = error.message
   }
 
-  const messageString = TaggedText_stripTags(message);
+  const messageString = messageToString(message);
 
   return (messageString.trim().length > 0 && (
   <div className={severityClass + ' ml1 message'}>

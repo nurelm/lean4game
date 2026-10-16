@@ -5,6 +5,7 @@ import { gameIdAtom, worldIdAtom } from "../../../store/location-atoms";
 import path from "node:path";
 import { proofAtom, proofQueryAtom } from "../../../store/editor-atoms";
 import { ExerciseStatement } from "../ExerciseStatement";
+import { Errors } from "../messages/Error";
 import { ProofStep } from "./proof_step/ProofStep";
 import { TypewriterCommandLine } from "./TypewriterCommandline";
 import { LoadingIcon } from "../../utils";
@@ -29,8 +30,15 @@ export function Typewriter() {
       <div className="pusher" />
       <div className='proof' ref={proofPanelRef}>
         <ExerciseStatement showLeanStatement={true} />
-        {proof ? proof.steps.map((step, i) => <ProofStep key={i} step={step} idx={i} />)
-      : <div className="centered-spinner"><CircularProgress /></div>}
+        {proof ? <>
+          {proof.steps.map((step, i) => <ProofStep key={i} step={step} idx={i} />)}
+          {proof.diagnostics.length > 0 &&
+            // Server messages that don't belong to any step, e.g. errors of the currently
+            // entered command.
+            <div className="step step-remaining">
+              <Errors errors={proof.diagnostics} typewriterMode={true} />
+            </div>}
+        </> : <div className="centered-spinner"><CircularProgress /></div>}
       </div>
     </div>
     <TypewriterCommandLine />

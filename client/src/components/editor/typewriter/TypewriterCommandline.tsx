@@ -151,6 +151,23 @@ export function TypewriterCommandLine() {
     }
   }, [handleKeyDown])
 
+  // Clicks in the typewriter should focus it. Re-asserting this on every
+  // mousedown guards against races in monaco's own mousedown handling, which
+  // can leave the editor unfocused (e.g. with synthetic clicks). The focus is
+  // re-asserted in a timeout, since synthetic click handlers (cypress) blur
+  // the focused element again right after the mousedown when the target has
+  // no focusable ancestor.
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    const focusEditor = () => {
+      oneLineEditorRef.current?.focus()
+      setTimeout(() => oneLineEditorRef.current?.focus(), 0)
+    }
+    el.addEventListener("mousedown", focusEditor, true)
+    return () => el.removeEventListener("mousedown", focusEditor, true)
+  }, [])
+
   // do not display if the proof is completed (with potential warnings still present)
   return <div className={twMerge("typewriter", isProcessing && "disabled")}>
         <form onSubmit={handleSubmit}>

@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next"
 import { useGameTranslation } from "../../utils/translation"
 import { useEffect, useRef, useState } from "react"
 import { useAtom } from "jotai"
-import { clientAtom, codeStorageAtom, rpcSessionAtom, editorAtom, leanMonacoAtom, lockEditorModeAtom, modelAtom, typewriterModeAtom, uriAtom } from "../../store/editor-atoms"
+import { getDefaultStore } from "jotai"
+import { clientAtom, codeStorageAtom, proofQueryAtom, rpcSessionAtom, editorAtom, leanMonacoAtom, lockEditorModeAtom, modelAtom, typewriterModeAtom, uriAtom } from "../../store/editor-atoms"
 import { gameIdAtom, levelIdAtom, worldIdAtom } from "../../store/location-atoms"
 import { mobileAtom } from "../../store/preferences-atoms"
 import { gameInfoAtom, levelInfoAtom } from "../../store/query-atoms"
@@ -130,6 +131,19 @@ export function PlayableLevel() {
     }, 500)
     return () => clearInterval(interval)
   }, [client, uri, rpcSess])
+
+  // Refetch the proof whenever the server publishes diagnostics. Diagnostics
+  // can arrive after the code change that triggered them (e.g. an error of
+  // the command that was just entered), and the proof state depends on them.
+  // (The old infoview implementation did exactly this via
+  // `useServerNotificationEffect('textDocument/publishDiagnostics', ...)`.)
+  useEffect(() => {
+    if (!client) return
+    const disposable = client.diagnostics(() => {
+      void getDefaultStore().get(proofQueryAtom)?.refetch?.()
+    })
+    return () => disposable.dispose()
+  }, [client])
 
   // Select and highlight proof steps and corresponding hints
   // TODO: with the new design, there is no difference between the introduction and
